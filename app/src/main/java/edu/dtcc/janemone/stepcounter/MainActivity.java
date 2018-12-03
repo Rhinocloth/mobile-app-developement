@@ -12,6 +12,8 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
+import java.text.NumberFormat;
+
 import static java.lang.Thread.interrupted;
 import static java.lang.Thread.sleep;
 
@@ -27,10 +29,12 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private TextView speedDisplay;
     private boolean counterPaused = true;
     private boolean newCounter = true;
+    private boolean firstCall = true;
     private int time;
     private int height;
     private double stride;
     private int steps;
+    private int initSteps;
     private double distance;
     private double speed;
 
@@ -84,6 +88,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 myManager.unregisterListener(MainActivity.this, myStepCounter);
                 counterPaused = true;
                 newCounter = true;
+                firstCall = true;
                 time = 0;
                 speed = 0;
                 distance = 0;
@@ -97,7 +102,12 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     @Override
     public void onSensorChanged(SensorEvent event) {
-        steps = Math.round(event.values[0]);
+        if (firstCall)
+        {
+            firstCall = false;
+            initSteps = Math.round(event.values[0]);
+        }
+        steps = Math.round(event.values[0]) - initSteps;
         calcDistance();
         calcSpeed();
         updateUI();
@@ -161,8 +171,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             @Override
             public void run() {
                 stepDisplay.setText(Integer.toString(steps));
-                distanceDisplay.setText(Double.toString(distance) + " miles");
-                speedDisplay.setText(Double.toString(speed) + " MPH");
+                distanceDisplay.setText(String.format("%.4f", distance) + " miles");
+                speedDisplay.setText(String.format("%.4f", speed) + " MPH");
                 timeDisplay.setText(timeString);
             }
         });
