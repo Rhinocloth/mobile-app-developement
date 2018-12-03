@@ -1,6 +1,7 @@
 package edu.dtcc.janemone.stepcounter;
 
 import android.content.Context;
+import android.content.Intent;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -27,7 +28,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private boolean counterPaused = true;
     private boolean newCounter = true;
     private int time;
-    private int stride;
+    private int height;
+    private double stride;
     private int steps;
     private double distance;
     private double speed;
@@ -36,6 +38,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        Intent intent = new Intent(MainActivity.this, SetupActivity.class);
+        startActivityForResult(intent, 1);
 
         startStop = findViewById(R.id.startStopBt);
         reset = findViewById(R.id.resetBt);
@@ -79,6 +84,12 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 myManager.unregisterListener(MainActivity.this, myStepCounter);
                 counterPaused = true;
                 newCounter = true;
+                time = 0;
+                speed = 0;
+                distance = 0;
+                steps = 0;
+                updateUI();
+
             }
         });
 
@@ -97,16 +108,39 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     }
 
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
+        super.onActivityResult(requestCode, resultCode, intent);
+
+        if (requestCode == 1)
+        {
+            if (resultCode == RESULT_OK)
+            {
+                final double HEIGHT_STRIDE_RATIO = .413;
+                height = intent.getIntExtra("height", 0);
+                stride = (double)height * HEIGHT_STRIDE_RATIO;
+            }
+        }
+    }
+
     private void calcSpeed()
     {
+        final int MILES_PER_SEC_TO_MILES_PER_HOUR = 3600;
+        double milesPerSecond;
+        double milesPerHour;
 
+        milesPerSecond = distance / time;
+        milesPerHour = milesPerSecond / MILES_PER_SEC_TO_MILES_PER_HOUR;
+
+        speed = milesPerHour;
     }
 
     private void calcDistance()
     {
-        //int dist = 0;
-        //dist = steps * stride;
-        //distance = dist;
+        final int INCHES_IN_MILE = 63360;
+        double initial = 0;
+        initial = steps * stride;
+        distance = initial / INCHES_IN_MILE;
     }
 
     private void updateUI()
@@ -127,6 +161,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             @Override
             public void run() {
                 stepDisplay.setText(Integer.toString(steps));
+                distanceDisplay.setText(Double.toString(distance) + " miles");
+                speedDisplay.setText(Double.toString(speed) + " MPH");
                 timeDisplay.setText(timeString);
             }
         });
@@ -149,6 +185,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                         err.printStackTrace();
                     }
 
+                    calcDistance();
+                    calcSpeed();
                     updateUI();
 
                     while (counterPaused)
