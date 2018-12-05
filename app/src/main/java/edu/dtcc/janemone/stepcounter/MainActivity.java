@@ -135,14 +135,17 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     private void calcSpeed()
     {
-        final int MILES_PER_SEC_TO_MILES_PER_HOUR = 3600;
+        //final int MILES_PER_SEC_TO_MILES_PER_HOUR = 3600;
+        final int MILES_PER_SEC_TO_FEET_PER_SEC = 5280;
         double milesPerSecond;
-        double milesPerHour;
+        //double milesPerHour;
+        double feetPerSecond;
 
         milesPerSecond = distance / time;
-        milesPerHour = milesPerSecond / MILES_PER_SEC_TO_MILES_PER_HOUR;
+        //milesPerHour = milesPerSecond / MILES_PER_SEC_TO_MILES_PER_HOUR
+        feetPerSecond = milesPerSecond * MILES_PER_SEC_TO_FEET_PER_SEC;
 
-        speed = milesPerHour;
+        speed = feetPerSecond;
     }
 
     private void calcDistance()
@@ -172,7 +175,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             public void run() {
                 stepDisplay.setText(Integer.toString(steps));
                 distanceDisplay.setText(String.format("%.4f", distance) + " miles");
-                speedDisplay.setText(String.format("%.4f", speed) + " MPH");
+                speedDisplay.setText(String.format("%.4f", speed) + " ft/s");
                 timeDisplay.setText(timeString);
             }
         });
